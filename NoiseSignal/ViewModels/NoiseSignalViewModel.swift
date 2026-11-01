@@ -16,10 +16,18 @@ final class NoiseSignalViewModel: ObservableObject {
     /// True once any session has delivered a valid value (final values stay visible after STOP).
     @Published private(set) var hasAnyMeasurement = false
     @Published private(set) var isInputAvailable = true
+    /// Finished sessions, newest first.
+    @Published private(set) var sessions: [NoiseSession]
+    /// The session that just ended; cleared when the next one starts.
+    @Published private(set) var lastSession: NoiseSession?
+    @Published private(set) var settings: AppSettings
 
     private let permissionProvider: any MicrophonePermissionProviding
     private let monitor: any AudioLevelMonitoring
-    private let thresholds: NoiseThresholds
+    private let dataStore: any AppDataStoring
+    private let now: () -> Date
+    private var thresholds: NoiseThresholds { settings.thresholds }
+    private var sessionStartDate: Date?
     /// Mutated only on the main actor; `nonisolated(unsafe)` so `deinit` can cancel it.
     nonisolated(unsafe) private var measurementTask: Task<Void, Never>?
     /// Incremented on every start and stop. Measurements tagged with an old generation are dropped.
@@ -34,12 +42,16 @@ final class NoiseSignalViewModel: ObservableObject {
     init(
         permissionProvider: any MicrophonePermissionProviding = SystemMicrophonePermissionProvider(),
         monitor: any AudioLevelMonitoring = AudioMonitorActor(),
-        thresholds: NoiseThresholds = NoiseThresholds(),
+        dataStore: any AppDataStoring = UserDefaultsAppDataStore(),
+        now: @escaping () -> Date = Date.init,
         observesLifecycle: Bool = true
     ) {
         self.permissionProvider = permissionProvider
         self.monitor = monitor
-        self.thresholds = thresholds
+        self.dataStore = dataStore
+        self.now = now
+        self.sessions = dataStore.loadSessions()
+        self.settings = dataStore.loadSettings()
         self.microphonePermission = permissionProvider.currentPermission()
         self.isInputAvailable = monitor.isInputAvailable()
 
@@ -55,6 +67,11 @@ final class NoiseSignalViewModel: ObservableObject {
         measurementTask?.cancel()
         let monitor = self.monitor
         Task { await monitor.stop() }
+    }
+
+    /// The screen stays on only while listening, and only if the user wants it to.
+    var shouldKeepScreenAwake: Bool {
+        isListening && settings.keepsScreenAwake
     }
 
     // MARK: - Intent
@@ -111,6 +128,8 @@ final class NoiseSignalViewModel: ObservableObject {
         // New session: the previous peak is never carried forward.
         peakDecibels = 0
         hasSessionMeasurement = false
+        lastSession = nil
+        sessionStartDate = now()
         isListening = true
 
         measurementTask = Task { [weak self] in
@@ -160,6 +179,42 @@ final class NoiseSignalViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Settings & History
+
+    func setTooLoudThreshold(_ decibels: Int) {
+        settings.tooLoudThreshold = AppSettings.clampedThreshold(decibels)
+        dataStore.saveSettings(settings)
+        if hasAnyMeasurement {
+            classification = thresholds.classification(for: currentDecibels)
+        }
+    }
+
+    func setKeepsScreenAwake(_ keepsScreenAwake: Bool) {
+        settings.keepsScreenAwake = keepsScreenAwake
+        dataStore.saveSettings(settings)
+    }
+
+    func clearHistory() {
+        sessions = []
+        lastSession = nil
+        dataStore.saveSessions(sessions)
+    }
+
+    /// Every way a session can end passes through `tearDown`, while `isListening` is still true exactly once.
+    private func recordFinishedSession() {
+        defer { sessionStartDate = nil }
+        guard isListening, hasSessionMeasurement, let startedAt = sessionStartDate else { return }
+        let session = NoiseSession(
+            startedAt: startedAt,
+            duration: now().timeIntervalSince(startedAt),
+            peakDecibels: peakDecibels,
+            classification: thresholds.classification(for: peakDecibels)
+        )
+        sessions = Array(([session] + sessions).prefix(NoiseSession.maxStored))
+        lastSession = session
+        dataStore.saveSessions(sessions)
+    }
+
     // MARK: - Measurements
 
     private func consume(_ value: Double, generation: UInt64) {
@@ -185,6 +240,7 @@ final class NoiseSignalViewModel: ObservableObject {
         sessionGeneration &+= 1
         measurementTask?.cancel()
         measurementTask = nil
+        recordFinishedSession()
         isListening = false // stale values are no longer reported as live
         await monitor.stop()
     }

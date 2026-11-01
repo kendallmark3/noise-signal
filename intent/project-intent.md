@@ -5,7 +5,7 @@ Noise Signal is a personal iPhone app that tells you, at a glance, how loud the 
 
 Business outcomes:
 - One tap to listen, one tap to stop; the answer (QUIET / NORMAL / LOUD / TOO LOUD) is readable from arm's length.
-- Proves the microphone sensor loop works reliably before history or session evidence is added (Intent 002).
+- Keeps a simple on-device history of finished sessions (Intent 002).
 
 Constraints:
 - SwiftUI, Swift concurrency, native Apple frameworks only. No dependencies.

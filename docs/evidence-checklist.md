@@ -35,6 +35,17 @@ Device: ______________________  iOS: ________  Build: ________  Date: ________
 | L6 | Incoming call / Siri while listening | Stopped, "Listening was interrupted.", no auto-restart after | ☐ |
 | L7 | Plug/unplug wired or Bluetooth mic while listening | Safe stop with message, or continues on built-in mic; never stale "LIVE" | ☐ |
 
+## History & Settings
+| # | Check | Expected | Pass |
+|---|---|---|---|
+| H1 | LISTEN, make noise, STOP | One-line summary under the button; History has one new row at the top | ☐ |
+| H2 | LISTEN then background the app | Session is saved once, with the background message | ☐ |
+| H3 | Force quit and reopen | History is still there; monitoring has not started | ☐ |
+| H4 | Set TOO LOUD level to 75, reading between 75 and 84 | Reading shows TOO LOUD; older History rows unchanged | ☐ |
+| H5 | Keep Screen Awake on, listen past auto-lock time | Screen stays on; after STOP it can lock normally | ☐ |
+| H6 | Keep Screen Awake off, listen past auto-lock time | Phone locks; session stops and is saved | ☐ |
+| H7 | Clear History, confirm | History is empty, summary is gone | ☐ |
+
 ## Privacy
 | # | Check | Expected | Pass |
 |---|---|---|---|

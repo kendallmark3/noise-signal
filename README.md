@@ -1,6 +1,6 @@
 # Noise Signal
 
-A minimal, black, high-contrast iPhone app that tells you how loud the room is: **QUIET · NORMAL · LOUD · TOO LOUD**, a live approximate dB level, and the session peak. One button. Nothing recorded.
+A minimal, black, high-contrast iPhone app that tells you how loud the room is: **QUIET · NORMAL · LOUD · TOO LOUD**, a live approximate dB level, and the session peak. One button. Nothing recorded. Finished sessions are saved as numbers only (date, duration, peak) in History, and Settings has three simple options.
 
 Built with Intent-Driven Engineering from [intent-drive-starter](https://github.com/kendallmark3/intent-drive-starter). Intent: [`intent/current-feature.md`](intent/current-feature.md) · full phased plan: [`docs/intent-001-plan.md`](docs/intent-001-plan.md).
 
@@ -29,18 +29,18 @@ LISTEN ─► NoiseSignalViewModel (@MainActor) ─► AudioMonitorActor (actor)
 
 | Folder | What lives there |
 |---|---|
-| `NoiseSignal/Models` | `NoiseClassification`, `NoiseThresholds` (40 / 70 / 85), `PermissionState` |
+| `NoiseSignal/Models` | `NoiseClassification`, `NoiseThresholds` (40 / 70 / 85 default), `PermissionState`, `NoiseSession`, `AppSettings` |
 | `NoiseSignal/Processing` | `AudioLevelProcessor` (RMS, dBFS, offset, clamp), `LevelSmoother` (EMA), `LevelFormatter` |
-| `NoiseSignal/Services` | `AudioMonitorActor` (serialized engine lifecycle), `TapProcessor`, permission provider, lifecycle observer |
+| `NoiseSignal/Services` | `AudioMonitorActor` (serialized engine lifecycle), `TapProcessor`, permission provider, lifecycle observer, `AppDataStore` (settings + session summaries) |
 | `NoiseSignal/ViewModels` | `NoiseSignalViewModel` — single owner of UI state, session-generation token |
-| `NoiseSignal/Views` | Status, readout, LISTEN/STOP button, permission message |
+| `NoiseSignal/Views` | Status, readout, LISTEN/STOP button, permission message, History, Settings |
 | `NoiseSignalTests` | 40+ XCTest cases: thresholds, processing, smoothing, permission, lifecycle mapping, view-model state machine |
 
 Design rules: start/stop are serialized; nothing restarts automatically after interruptions, route changes, or backgrounding; raw audio buffers never leave the tap callback.
 
 ## Next intent
 
-Intent 002 — history + session evidence, once this one proves the sensor loop on device. Append observations as deltas to `intent/current-feature.md` (see `templates/delta-template.md`).
+Intent 002 (history + simple settings) is built; observe it on the device, then continue or stop. Append observations as deltas to `intent/current-feature.md` (see `templates/delta-template.md`).
 
 ---
 Intent-Driven Engineering · [learnteachmaster.org](https://learnteachmaster.org) · [intent-driven-engineering.com](https://intent-driven-engineering.com)
