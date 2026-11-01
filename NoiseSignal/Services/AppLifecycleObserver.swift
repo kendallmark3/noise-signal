@@ -24,7 +24,7 @@ final class AppLifecycleObserver {
 
     init(
         center: NotificationCenter = .default,
-        inputAvailable: @escaping @MainActor @Sendable () -> Bool = { AVAudioSession.sharedInstance().isInputAvailable },
+        inputAvailable: @escaping @Sendable () -> Bool = { AVAudioSession.sharedInstance().isInputAvailable },
         handler: @escaping @MainActor @Sendable (LifecycleEvent) -> Void
     ) {
         self.center = center
@@ -37,10 +37,10 @@ final class AppLifecycleObserver {
         ]
         for name in names {
             let token = center.addObserver(forName: name, object: nil, queue: .main) { notification in
+                // Map to a Sendable event first so the non-Sendable Notification never crosses isolation.
+                guard let event = AppLifecycleObserver.event(for: notification, inputAvailable: inputAvailable()) else { return }
                 MainActor.assumeIsolated {
-                    if let event = AppLifecycleObserver.event(for: notification, inputAvailable: inputAvailable()) {
-                        handler(event)
-                    }
+                    handler(event)
                 }
             }
             tokens.append(token)
@@ -54,7 +54,7 @@ final class AppLifecycleObserver {
     }
 
     /// Pure mapping from a notification to an event. Unit-testable.
-    static func event(for notification: Notification, inputAvailable: Bool) -> LifecycleEvent? {
+    nonisolated static func event(for notification: Notification, inputAvailable: Bool) -> LifecycleEvent? {
         switch notification.name {
         case UIApplication.didBecomeActiveNotification:
             return .didBecomeActive
