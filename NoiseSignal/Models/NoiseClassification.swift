@@ -1,7 +1,7 @@
 import Foundation
 
 /// User-facing loudness bucket. Pure value type — no SwiftUI or audio dependencies.
-enum NoiseClassification: String, CaseIterable, Sendable {
+enum NoiseClassification: String, CaseIterable, Codable, Sendable {
     case quiet
     case normal
     case loud

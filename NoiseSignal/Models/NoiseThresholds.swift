@@ -1,6 +1,7 @@
 import Foundation
 
-/// Centralized classification thresholds (approximate display dB).
+/// Centralized classification thresholds (approximate display dB). Values below are the defaults;
+/// the TOO LOUD bound can be changed in Settings.
 ///
 /// - QUIET:    < 40
 /// - NORMAL:   40 ..< 70

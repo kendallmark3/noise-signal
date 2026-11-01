@@ -58,6 +58,16 @@ final class FakeAudioMonitor: AudioLevelMonitoring, @unchecked Sendable {
     }
 }
 
+final class FakeAppDataStore: AppDataStoring, @unchecked Sendable {
+    var sessions: [NoiseSession] = []
+    var settings = AppSettings()
+
+    func loadSessions() -> [NoiseSession] { sessions }
+    func saveSessions(_ sessions: [NoiseSession]) { self.sessions = sessions }
+    func loadSettings() -> AppSettings { settings }
+    func saveSettings(_ settings: AppSettings) { self.settings = settings }
+}
+
 // MARK: - Tests
 
 @MainActor
@@ -68,6 +78,7 @@ final class NoiseSignalViewModelTests: XCTestCase {
     private lazy var viewModel = NoiseSignalViewModel(
         permissionProvider: permission,
         monitor: monitor,
+        dataStore: FakeAppDataStore(),
         observesLifecycle: false
     )
 

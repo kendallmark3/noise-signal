@@ -1,6 +1,6 @@
 # Architecture
 
-Single-target SwiftUI iOS app (iOS 17+), plus an XCTest target. No services, APIs, databases, or network.
+Single-target SwiftUI iOS app (iOS 17+), plus an XCTest target. No backend services, APIs, databases, or network.
 
 ```
 SwiftUI Views ──► NoiseSignalViewModel (@MainActor, single owner of UI state)
@@ -12,6 +12,7 @@ SwiftUI Views ──► NoiseSignalViewModel (@MainActor, single owner of UI sta
 
 AppLifecycleObserver (NotificationCenter, main queue) ──► view model: background, interruptions, route changes
 MicrophonePermissionProvider (AVAudioApplication) ──► view model
+AppDataStore (UserDefaults JSON: settings + session summaries, numbers only) ◄──► view model
 ```
 
 | Layer | Folder | Rule |
