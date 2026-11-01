@@ -1,0 +1,46 @@
+# Fallback only. NoiseSignal.xcodeproj is committed and opens directly in Xcode 16+.
+# If it ever fails to open: `brew install xcodegen && xcodegen` regenerates it from this file.
+name: NoiseSignal
+options:
+  bundleIdPrefix: org.learnteachmaster
+  deploymentTarget:
+    iOS: "17.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    TARGETED_DEVICE_FAMILY: "1"
+targets:
+  NoiseSignal:
+    type: application
+    platform: iOS
+    sources: [NoiseSignal]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.learnteachmaster.NoiseSignal
+        GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_CFBundleDisplayName: Noise Signal
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: Noise Signal uses the microphone to estimate ambient sound level. It does not record or save audio.
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+  NoiseSignalTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [NoiseSignalTests]
+    dependencies:
+      - target: NoiseSignal
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  NoiseSignal:
+    build:
+      targets:
+        NoiseSignal: all
+    test:
+      targets: [NoiseSignalTests]
